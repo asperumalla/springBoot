@@ -2,10 +2,12 @@ package com.interview.coins.service.impl;
 
 import com.interview.coins.dao.Coins;
 import com.interview.coins.dao.CoinsChangeInfo;
+import com.interview.coins.exception.ApplicationException;
 import com.interview.coins.repository.CoinChangeRepository;
 import com.interview.coins.service.CoinChangeService;
 import com.interview.coins.service.util.CoinChangeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ public class CoinChangeServiceImpl implements CoinChangeService {
 
     @Autowired
     public CoinChangeRepository repository;
+
 
     @Override
     public List<Coins> addCoins(List<Coins> coins) {
@@ -34,14 +37,21 @@ public class CoinChangeServiceImpl implements CoinChangeService {
         List<Coins> coins = getAllCoinsCount();
         CoinsChangeInfo info = CoinChangeUtil.getChangeByBill( bill, coins );
 
+        Optional.ofNullable(info).orElseThrow(() -> new ApplicationException(
+                String.format( "NOT enough denominations available for %s",bill), HttpStatus.BAD_REQUEST   ));
+
         List<Coins> toSaveList = coins.stream().filter(cd -> isTypePresent(cd.getDenomination(), info.getCoins())).map(c ->{
             c.setCoinsCount(c.getCoinsCount() - getCountByType(c.getDenomination(), info.getCoins()));
             return c;
         }).collect(Collectors.toList());
 
         repository.saveAll(toSaveList);
-        System.out.println(toSaveList);
-        //System.out.println(toSaveList);
+
+        if( toSaveList.isEmpty())
+            Optional.ofNullable(toSaveList).filter( s -> !s.isEmpty() ).
+                    orElseThrow(() -> new ApplicationException(
+                            String.format( "Change NOT available for bill %s",bill), HttpStatus.BAD_REQUEST   ));
+
         return info;
     }
 

@@ -7,9 +7,10 @@ public class ApiErrorResponse {
     private final String message;
     private final String cause;
 
+    static final String NO_SUGGESTIONS = "No Suggestions Available";
     public ApiErrorResponse(HttpStatus httpStatus, String message, String cause) {
         this.httpStatus = httpStatus;
-        this.cause= cause;
+        this.cause= cause == null || cause.isEmpty() ? NO_SUGGESTIONS: cause;
         this.message = message;
     }
 

@@ -20,16 +20,23 @@ public class CoinsChangeController {
 
     Logger logger = LoggerFactory.getLogger(CoinsChangeController.class);
 
-    @Autowired
+
     private CoinChangeService service;
+
+    @Autowired
+    public CoinsChangeController(CoinChangeService service) {
+        this.service = service;
+    }
 
     @GetMapping(value = "/list")
     public ResponseEntity<List<Coins>> listChange(){
-        logger.info("this is atest");
+
       List<Coins> coins = service.getAllCoinsCount();
 
-//        Optional.ofNullable(  coins ).filter(  s -> !(s.size()>0)  )
-//                .orElseThrow( () -> new ApplicationException("Testing exception")   );
+      Optional.ofNullable( coins ).filter( c -> !c.isEmpty())
+              .orElseThrow( () -> new ApplicationException("There are NO coin(s) denominations available",HttpStatus.OK));
+
+      logger.info( "Size of Coins denomination : {}",coins.size());
       return new ResponseEntity<List<Coins>>(coins, HttpStatus.OK);
     }
 

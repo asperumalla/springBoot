@@ -11,11 +11,13 @@ public class ExceptionController {
 
     @ExceptionHandler(value = ApplicationException.class)
     public ResponseEntity<ApiErrorResponse> handleExceptions(ApplicationException ex){
+        System.out.println( ex.getResponseBody() +" <--: -->"+ ex.getMessage() );
             return new ResponseEntity<ApiErrorResponse>(ex.getResponseBody(), ex.getResponseBody().getHttpStatus());
     }
 
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiErrorResponse> handleExceptions(Exception ex){
-        return new ResponseEntity<ApiErrorResponse>(new ApplicationException( ex.getMessage()).getResponseBody(), HttpStatus.BAD_REQUEST );
+        ApplicationException exception = new ApplicationException(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<ApiErrorResponse>(exception.getResponseBody(), exception.getResponseBody().getHttpStatus() );
     }
 }
